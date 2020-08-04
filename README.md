@@ -10,13 +10,13 @@ The data is provided from [here](https://github.com/kmounlp/NER).
 
 ## Process
 ##### 1. Build Vocab and Preprocess
-run vocab.py   
+run `vocab.py`   
 1. build vocabs for wordss, characters and pos-taggings
-2. tokenize and convert into index for both tokens and labels
-3. 
+2. tokenize and convert into index for both tokens and labels  
+
 ##### 2. Train
-run train.py
+run `train.py`
 
 ##### 3. Inference
-run inference.ipynb
+run `inference.ipynb`  
 Make sure that you give a relevant path for your trained model
