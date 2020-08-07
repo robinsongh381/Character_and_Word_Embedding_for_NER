@@ -16,6 +16,10 @@ from models.cnn_lstm import CNNBiLSTM
 device = config.device
 
 
+def to_cpu(tensors):
+    for t in tensors:
+        t.cpu()
+        
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-epoch", default=config.epoch, type=int)
@@ -106,10 +110,7 @@ if __name__ == '__main__':
                 accuracy = (logit.argmax(-1)==label).float()[label!=0].mean().item()
                 tr_acc += accuracy
                 
-            token_idx.cpu()
-            char_idx.cpu()
-            pos_idx.cpu()
-            label.cpu()
+            to_cpu([token_idx, char_idx, pos_idx, label])
         
             if global_step >0 and global_step % config.gradient_accumulation_steps == 0:    
                 # global_step += config.gradient_accumulation_steps                
@@ -118,13 +119,18 @@ if __name__ == '__main__':
                 model.zero_grad()
                 # scheduler.step()
                 
-            if global_step % 100==0: #int(len(self.train_dataloader)/5) ==0:
-                tr_avg_acc = tr_acc / global_step
-                tr_avg_loss = tr_loss / global_step
+#             if global_step % 100==0: #int(len(self.train_dataloader)/5) ==0:
+#                 tr_avg_acc = tr_acc / global_step
+#                 tr_avg_loss = tr_loss / global_step
 
-                logger.info('epoch : {} /{}, global_step : {} /{}, tr_avg_loss: {:.5f}, tr_loss : {:.5f}, tr_avg_acc: {:.2%}, tr_acc: {:.2%}'.format(
-                    e+1, args.epoch, global_step, t_total, tr_avg_loss, loss.item(), tr_avg_acc, accuracy))
-                tb_writer.add_scalars('tr_loss', {'average': tr_avg_loss, 'current': loss.item()}, global_step)
+#                 logger.info('epoch : {} /{}, global_step : {} /{}, tr_avg_loss: {:.5f}, tr_loss : {:.5f}, tr_avg_acc: {:.2%}, tr_acc: {:.2%}'.format(
+#                     e+1, args.epoch, global_step, t_total, tr_avg_loss, loss.item(), tr_avg_acc, accuracy))
+#                 tb_writer.add_scalars('tr_loss', {'average': tr_avg_loss, 'current': loss.item()}, global_step)
+        tr_avg_acc = tr_acc / step
+        tr_avg_loss = tr_loss / step
+        logger.info('>>> Train Epoch : {}  Tr_avg_loss: {:.5f}, Tr_avg_acc: {:.2%}'.format(e+1, tr_avg_loss, tr_avg_acc))        
+        
+        """ Evaluation"""
                 
         model.eval()
         eval_acc, eval_loss = 0.0, 0.0
@@ -139,12 +145,8 @@ if __name__ == '__main__':
             with torch.no_grad():
                 eval_accuracy = (logit.argmax(-1)==label).float()[label!=0].mean().item()
                 eval_acc += eval_accuracy
-        
-        token_idx.cpu()
-        char_idx.cpu()
-        pos_idx.cpu()
-        label.cpu()
-        
+                
+        to_cpu([token_idx, char_idx, pos_idx, label])
         eval_avg_acc = eval_acc / step
         eval_avg_loss = eval_loss / step
         
